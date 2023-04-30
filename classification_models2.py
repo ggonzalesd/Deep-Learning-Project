@@ -15,76 +15,90 @@ def ConvActDropout(input_, output_, kernel=3, pad=1, pool=2, drop=0.2, activatio
   return seq
 
 
-class LowDeepCnnWithReLU(nn.Module):
+class LowParamCnnWithReLU(nn.Module):
   def __init__(self):
     super().__init__()                                            #   OUTPUTS
     self.net = nn.Sequential(                       # (INITIAL INPUT) 2  512 512
-      ConvActDropout(2, 4, kernel=5, pad=2),                      #   4  256 256
-      ConvActDropout(4, 8, pool=4),                               #   8   64  64
-      ConvActDropout(8, 32, pool=4),                              #   32  16  16
-      ConvActDropout(32, 64, pool=4),                             #   64   4   4
-      ConvActDropout(64, 128, pool=4),                            #   128  1   1
+      ConvActDropout(2, 2),                                       #   2  256 256
+      ConvActDropout(2, 2),                                       #   2  128 128
+      ConvActDropout(2, 32, pool=4),                              #   32  32  32
+      ConvActDropout(32, 64, pool=4),                             #   64   8   8
+      ConvActDropout(64, 128, pool=4),                            #   128  2   2
     )
 
     self.classificator = nn.Sequential(
       nn.Flatten(),
-      nn.Linear(128, 32),
+      nn.Linear(512, 64),
       nn.ReLU(),
-      nn.Dropout(0.5),
-      nn.Linear(32, 3)
+      nn.Linear(64, 3)
     )
 
   def forward(self, X):
     return self.classificator(self.net(X))
 
 
-class MidDeepCnnWithReLU(nn.Module):
+class LowParamCnnWithSELU(nn.Module):
   def __init__(self):
     super().__init__()                                            #   OUTPUTS
     self.net = nn.Sequential(                       # (INITIAL INPUT) 2  512 512
-      ConvActDropout(2, 4, kernel=5, pad=2),                      #   4  256 256
-      ConvActDropout(4, 8),                                       #   8  128 128
-      ConvActDropout(8, 16),                                      #   16  64  64
-      ConvActDropout(16, 32, pool=4),                             #   32  16  16
-      ConvActDropout(32, 64, pool=4),                             #   64   4   4
-      ConvActDropout(64, 128, pool=4),                            #   128  1   1
+      ConvActDropout(2, 2, activation="SELU"),                    #   2  256 256
+      ConvActDropout(2, 2, activation="SELU"),                    #   2  128 128
+      ConvActDropout(2, 32, pool=4, activation="SELU"),           #   32  32  32
+      ConvActDropout(32, 64, pool=4, activation="SELU"),          #   64   8   8
+      ConvActDropout(64, 128, pool=4, activation="SELU"),         #   128  2   2
     )
 
     self.classificator = nn.Sequential(
       nn.Flatten(),
-      nn.Linear(128, 32),
-      nn.ReLU(),
-      nn.Dropout(0.5),
-      nn.Linear(32, 3)
+      nn.Linear(512, 64),
+      nn.SELU(),
+      nn.Linear(64, 3)
     )
 
   def forward(self, X):
     return self.classificator(self.net(X))
 
 
-class HighDeepCnnWithReLU(nn.Module):
+class HighParamCnnWithReLU(nn.Module):
   def __init__(self):
     super().__init__()                                            #   OUTPUTS
     self.net = nn.Sequential(                       # (INITIAL INPUT) 2  512 512
-      ConvActDropout(2, 4, kernel=5, pad=2),                      #   4  256 256
-      ConvActDropout(4, 8),                                       #   8  128 128
-      ConvActDropout(8, 16),                                      #   16  64  64
-      ConvActDropout(16, 32),                                     #   32  32  32
-      ConvActDropout(32, 64),                                     #   64  16  16
-      ConvActDropout(64, 128),                                    #   128  8   8
-      ConvActDropout(128, 256),                                   #   256  4   4
+      ConvActDropout(2, 8),                                       #   8  256 256
+      ConvActDropout(8, 32),                                      #   32 128 128
+      ConvActDropout(32, 128, pool=4),                            #   128 32  32
+      ConvActDropout(128, 256, pool=4),                           #   256  8   8
+      ConvActDropout(256, 256),                                   #   256  4   4
       ConvActDropout(256, 512, pool=4),                           #   512  1   1
     )
 
     self.classificator = nn.Sequential(
       nn.Flatten(),
-      nn.Linear(512, 128),
+      nn.Linear(512, 64),
       nn.ReLU(),
-      nn.Dropout(0.5),
-      nn.Linear(128, 32),
-      nn.ReLU(),
-      nn.Dropout(0.5),
-      nn.Linear(32, 3)
+      nn.Linear(64, 3)
+    )
+
+  def forward(self, X):
+    return self.classificator(self.net(X))
+
+
+class HighParamCnnWithSELU(nn.Module):
+  def __init__(self):
+    super().__init__()                                            #   OUTPUTS
+    self.net = nn.Sequential(                       # (INITIAL INPUT) 2  512 512
+      ConvActDropout(2, 8, activation="SELU"),                    #   8  256 256
+      ConvActDropout(8, 32, activation="SELU"),                   #   32 128 128
+      ConvActDropout(32, 128, pool=4, activation="SELU"),         #   128 32  32
+      ConvActDropout(128, 256, pool=4, activation="SELU"),        #   256  8   8
+      ConvActDropout(256, 256, activation="SELU"),                #   256  4   4
+      ConvActDropout(256, 512, pool=4, activation="SELU"),        #   512  1   1
+    )
+
+    self.classificator = nn.Sequential(
+      nn.Flatten(),
+      nn.Linear(512, 64),
+      nn.SELU(),
+      nn.Linear(64, 3)
     )
 
   def forward(self, X):
