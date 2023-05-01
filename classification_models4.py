@@ -32,15 +32,17 @@ class MultiLayerSeLU(nn.Module):
           DownSample(256, 512),
       )
       self.classificator = nn.Sequential(
-          nn.Flatten(),
-          nn.Linear(512*4*4, 1024),
-          nn.SELU(),
-          nn.Linear(1024, 512),
-          nn.SELU(),
-          nn.Linear(512, 256),
-          nn.SELU(),
-          nn.Linear(256, 10),
-      )
+            nn.Flatten(),
+            nn.Linear(512*4*4, 1024),
+            nn.SELU(),
+            nn.Linear(1024, 512),
+            nn.SELU(),
+            nn.Linear(512, 256),
+            nn.SELU(),
+            nn.Linear(256, 128),
+            nn.SELU(),
+            nn.Linear(128, 10),
+        )
 
   def forward(self, X):
       return self.classificator(self.net(X))
