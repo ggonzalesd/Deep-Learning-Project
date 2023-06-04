@@ -1,6 +1,17 @@
 import torch
+from torch.utils import data
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
+
+def total_num_parameters(model):
+  return sum(p.numel() for p in model.parameters())
+
+def split_dataset(dataset, train_size=0.8):
+  n = len(dataset)
+  n_train = int(n*train_size)
+  n_val = n - n_train
+  train_dataset, val_dataset = data.random_split(dataset, [n_train, n_val])
+  return train_dataset, val_dataset
 
 def display_random_batch_detector(model, dataloader):
   labels = ['Meningioma', 'Glioma', 'Pituitary']
@@ -79,7 +90,7 @@ def print_table(headers, values):
     table.float_format = '.3'
     print(table)
 
-def results_to_row(name, ckp_results):
+def row(name, ckp_results):
   results = [name]
   if 'train_loss' in ckp_results:
       results += [ckp_results['train_loss'], ckp_results['val_loss']]

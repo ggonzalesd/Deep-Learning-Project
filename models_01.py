@@ -38,8 +38,99 @@ class Inception(nn.Module):
     b4 = self.b4(X)
     return torch.cat([b1, b2, b3, b4], 1)
 
+class BrainNet_V1(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.stem = nn.Sequential(
+      ConvBlock(2, 24, kernel_size=3, padding=1),
+      nn.MaxPool2d(3, 2, 1),
+      ConvBlock(24, 32, kernel_size=3, padding=1),
+      nn.MaxPool2d(3, 2, 1)
+    )
+    self.extractor = nn.Sequential(
+      Inception(32, 8, 16, 32, 8, 16, 16),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(72, 16, 32, 64, 16, 32, 32),
+      nn.MaxPool2d(3, 2, 1),
+    )
+    self.clasificator = nn.Sequential(
+      nn.AdaptiveAvgPool2d(output_size=(1, 1)),
+      nn.Flatten(),
+      nn.Linear(144, 3)
+    )
+  
+  def forward(self, X):
+    stem = self.stem(X)
+    features = self.extractor(stem)
+    logits = self.clasificator(features)
+    return logits
 
-class InceptionModel(nn.Module):
+class BrainNet_V2(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.stem = nn.Sequential(
+      ConvBlock(2, 24, kernel_size=3, padding=1),
+      nn.MaxPool2d(3, 2, 1),
+      ConvBlock(24, 32, kernel_size=3, padding=1),
+      nn.MaxPool2d(3, 2, 1)
+    )
+    self.extractor = nn.Sequential(
+      Inception(32, 8, 16, 32, 8, 16, 16),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(72, 16, 32, 64, 16, 32, 32),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(144, 32, 64, 128, 16, 32, 32),
+      nn.MaxPool2d(3, 2, 1),
+    )
+    self.clasificator = nn.Sequential(
+      nn.AdaptiveAvgPool2d(output_size=(1, 1)),
+      nn.Flatten(),
+      nn.Linear(224, 3)
+    )
+  
+  def forward(self, X):
+    stem = self.stem(X)
+    features = self.extractor(stem)
+    logits = self.clasificator(features)
+    return logits
+
+class BrainNet_V3(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.stem = nn.Sequential(
+      ConvBlock(2, 24, kernel_size=3, padding=1),
+      nn.MaxPool2d(3, 2, 1),
+      ConvBlock(24, 32, kernel_size=3, padding=1),
+      ConvBlock(32, 32, kernel_size=3, padding=1),
+      nn.MaxPool2d(3, 2, 1)
+    )
+    self.extractor = nn.Sequential(
+      Inception(32, 8, 16, 32, 8, 16, 16),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(72, 16, 32, 64, 16, 32, 32),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(144, 32, 64, 128, 16, 32, 32),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(224, 32, 64, 128, 16, 32, 32),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(224, 32, 64, 128, 16, 32, 32),
+    )
+    self.clasificator = nn.Sequential(
+      nn.AdaptiveAvgPool2d(output_size=(1, 1)),
+      nn.Flatten(),
+      nn.Linear(224, 64),
+      nn.ReLU(),
+      nn.Dropout(0.5),
+      nn.Linear(64, 3)
+    )
+  
+  def forward(self, X):
+    stem = self.stem(X)
+    features = self.extractor(stem)
+    logits = self.clasificator(features)
+    return logits
+
+class BrainNet_V4(nn.Module):
   def __init__(self):
     super().__init__()
     self.stem = nn.Sequential(
