@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torchvision import models
 
 class ConvBlock(nn.Module):
   def __init__(self, input_, output_, **kargs):
@@ -163,3 +164,20 @@ class BrainNet_V4(nn.Module):
     X = self.extractor(X)
     X = self.clasificator(X)
     return X
+
+class BrainResnet(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.backbone = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
+    in_features = self.backbone.fc.in_features
+    self.backbone.fc = nn.Identity()
+    self.classifier = nn.Sequential(
+      nn.Linear(in_features, 64),
+      nn.Dropout(0.5),
+      nn.ReLU(),
+      nn.Linear(64, 3)
+    )
+  def forward(self, X):
+    backbone = self.backbone(X)
+    logits = self.classifier(backbone)
+    return logits
