@@ -180,3 +180,15 @@ class BrainMobilenet(nn.Module):
     backbone = self.backbone(X)
     logits = self.classifier(backbone)
     return logits
+
+class BrainVGG19net(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.backbone = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1)
+    in_features = self.backbone.classifier[6].in_features
+    self.backbone.classifier = nn.Identity()
+    self.classifier = nn.Linear(in_features, 3)
+  def forward(self, X):
+    backbone = self.backbone(X)
+    logits = self.classifier(backbone)
+    return logits
