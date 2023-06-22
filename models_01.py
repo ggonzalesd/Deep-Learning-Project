@@ -185,9 +185,17 @@ class BrainVGG19net(nn.Module):
   def __init__(self):
     super().__init__()
     self.backbone = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1)
-    in_features = self.backbone.classifier[6].in_features
+    in_features = self.backbone.classifier[0].in_features
     self.backbone.classifier = nn.Identity()
-    self.classifier = nn.Linear(in_features, 3)
+    self.classifier = nn.Sequential(
+      nn.Linear(in_features, 4096),
+      nn.ReLU(),
+      nn.Dropout(0.5),
+      nn.Linear(4096, 4096),
+      nn.ReLU(),
+      nn.Dropout(0.5),
+      nn.Linear(4096, 3)
+    )
   def forward(self, X):
     backbone = self.backbone(X)
     logits = self.classifier(backbone)
