@@ -205,7 +205,7 @@ class BrainResNet_V3(nn.Module):
   def forward(self, X):
     X = self.stem(X)
     X = self.extractor(X)
-    #X = self.clasificator(X)
+    X = self.clasificator(X)
     return X
 
 class BrainMobilenet(nn.Module):

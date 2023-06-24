@@ -89,3 +89,17 @@ def test_brainmobilenet(input_batch_three):
   assert output.shape == torch.Size([batch, 3])
 
   assert isinstance(output, torch.Tensor)
+
+def test_brainresnet_v3(input_batch):
+  X, y = input_batch
+  batch, channels, heigh, weight = X.shape
+
+  model = models.BrainResNet_V3()
+  try:
+      output = model(X)
+  except Exception as e:
+      pytest.fail(f"Forward method raised an exception: {e}")
+
+  assert output.shape == torch.Size([batch, 3])
+
+  assert isinstance(output, torch.Tensor)
