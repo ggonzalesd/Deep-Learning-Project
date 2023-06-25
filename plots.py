@@ -13,12 +13,14 @@ def split_dataset(dataset, train_size=0.8):
   train_dataset, val_dataset = data.random_split(dataset, [n_train, n_val])
   return train_dataset, val_dataset
 
-def display_random_batch_detector(model, dataloader):
+def display_random_batch_detector(model, dataloader, three_channels=False):
   labels = ['Meningioma', 'Glioma', 'Pituitary']
   X_batch, y_batch = next(iter(dataloader))
   model = model.to('cpu')
   model.eval()
   with torch.no_grad():
+    if three_channels:
+      X_batch = torch.concat([X_batch, X_batch.mean(1, keepdim=True)], 1)
     logits = model(X_batch)
     _, preds = torch.max(logits, 1)
     plt.figure(figsize=(14,5))

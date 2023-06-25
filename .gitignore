@@ -6,3 +6,4 @@ data.zip
 checkpoint.pt
 model.pt
 *.pt
+.pytest_cache

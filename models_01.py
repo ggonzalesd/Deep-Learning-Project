@@ -13,10 +13,13 @@ class ConvBlock(nn.Module):
   def forward(self, X):
     return self.conv(X)
 
-
 class Inception(nn.Module):
-  def __init__(self, input_, ch1x1, ch3x3_red, ch3x3, ch5x5_red, ch5x5, pool_proj):
+  def __init__(self, input_, ch1x1, ch3x3_red, ch3x3, ch5x5_red, ch5x5, pool_proj, residual=False):
     super(Inception, self).__init__()
+    self.residual = residual
+    if self.residual:
+      self.br = ConvBlock(input_, ch1x1 + ch3x3 + ch5x5 + pool_proj, kernel_size=1)
+
     self.b1 = ConvBlock(input_, ch1x1, kernel_size=1)
 
     self.b2 = nn.Sequential(
@@ -37,7 +40,12 @@ class Inception(nn.Module):
     b2 = self.b2(X)
     b3 = self.b3(X)
     b4 = self.b4(X)
-    return torch.cat([b1, b2, b3, b4], 1)
+    b = torch.cat([b1, b2, b3, b4], 1)
+    if self.residual:
+      r = self.br(X)
+      return b + r
+    else:
+      return b
 
 class BrainNet_V1(nn.Module):
   def __init__(self):
@@ -159,6 +167,41 @@ class BrainNet_V4(nn.Module):
       nn.Linear(224, 3)
     )
   
+  def forward(self, X):
+    X = self.stem(X)
+    X = self.extractor(X)
+    X = self.clasificator(X)
+    return X
+
+class BrainResNet_V3(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.stem = nn.Sequential(
+      ConvBlock(2, 24, kernel_size=3, padding=1),
+      nn.MaxPool2d(3, 2, 1),
+      ConvBlock(24, 32, kernel_size=3, padding=1),
+      ConvBlock(32, 32, kernel_size=3, padding=1),
+      nn.MaxPool2d(3, 2, 1)
+    )
+    self.extractor = nn.Sequential(
+      Inception(32, 8, 16, 32, 8, 16, 16, True),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(72, 16, 32, 64, 16, 32, 32, True),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(144, 32, 64, 128, 16, 32, 32, True),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(224, 32, 64, 128, 16, 32, 32, True),
+      nn.MaxPool2d(3, 2, 1),
+      Inception(224, 32, 64, 128, 16, 32, 32, True),
+    )
+    self.clasificator = nn.Sequential(
+      nn.AdaptiveAvgPool2d(output_size=(1, 1)),
+      nn.Flatten(),
+      nn.Linear(224, 64),
+      nn.ReLU(),
+      nn.Dropout(0.5),
+      nn.Linear(64, 3)
+    )
   def forward(self, X):
     X = self.stem(X)
     X = self.extractor(X)
