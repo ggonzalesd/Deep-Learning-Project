@@ -102,4 +102,8 @@ def row(name, ckp_results):
       results += [ckp_results['train_acc'], ckp_results['val_acc']]
   else:
       results += ['-', '-']
+  if 'train_f1' in ckp_results:
+      results += [ckp_results['train_f1'], ckp_results['val_f1']]
+  else:
+      results += ['-', '-']
   return results
